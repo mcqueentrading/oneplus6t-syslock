@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <sys/select.h>
+#include <unistd.h>
 
 tap_to_wake::tap_to_wake(const std::map<std::string, std::map<std::string, std::string>>& cfg) {
 	config_main = cfg;

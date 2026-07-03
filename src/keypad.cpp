@@ -56,7 +56,7 @@ keypad::keypad(Gtk::Entry &entry, const std::function<void()> &enter_func) : Gtk
 	button_delete->set_can_focus(false);
 	button_delete->signal_clicked().connect([&entry]() {
 		if (entry.get_text().length() > 0)
-			entry.set_text(entry.get_text().substr(1));
+			entry.set_text(entry.get_text().substr(0, entry.get_text().length() - 1));
 		entry.set_position(-1);
 	});
 }
