@@ -7,6 +7,7 @@ PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 LIBDIR ?= $(PREFIX)/lib
 DATADIR ?= $(PREFIX)/share
+PAMDIR ?= /etc/pam.d
 BUILDDIR = build
 
 # Features
@@ -40,6 +41,7 @@ install: $(all)
 	@install -D -t $(DESTDIR)$(BINDIR) $(BUILDDIR)/$(BINS)
 	@install -D -t $(DESTDIR)$(LIBDIR) $(BUILDDIR)/$(LIBS)
 	@install -D -t $(DESTDIR)$(DATADIR)/sys64/lock config.conf style.css
+	@install -D -m 0644 pam/syslock $(DESTDIR)$(PAMDIR)/syslock
 
 clean:
 	@echo "Cleaning up"

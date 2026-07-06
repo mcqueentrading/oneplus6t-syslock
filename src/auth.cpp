@@ -13,6 +13,10 @@ int pam_conversation(int num_msg, const struct pam_message **msg, struct pam_res
 			response[i].resp = strdup(password);
 			response[i].resp_retcode = 0;
 		}
+		else if (msg[i]->msg_style == PAM_TEXT_INFO || msg[i]->msg_style == PAM_ERROR_MSG) {
+			response[i].resp = NULL;
+			response[i].resp_retcode = 0;
+		}
 		else {
 			free(response);
 			return PAM_CONV_ERR;
@@ -23,15 +27,23 @@ int pam_conversation(int num_msg, const struct pam_message **msg, struct pam_res
 	return PAM_SUCCESS;
 }
 
-bool authenticate(char *user, const char *password) {
+bool authenticate(const char *user, const char *password) {
+	if (user == NULL || user[0] == '\0' || password == NULL)
+		return false;
+
 	struct pam_conv conv = {
 		pam_conversation,
 		(void *)password
 	};
 	pam_handle_t *pamh = NULL;
-	int retval = PAM_ERROR_MSG;
-	retval = pam_start("login", user, &conv, &pamh);
+	int retval = pam_start("syslock", user, &conv, &pamh);
+	if (retval != PAM_SUCCESS || pamh == NULL)
+		return false;
+
+	pam_set_item(pamh, PAM_RUSER, user);
 	retval = pam_authenticate(pamh, 0);
+	if (retval == PAM_SUCCESS)
+		retval = pam_acct_mgmt(pamh, 0);
 	pam_end(pamh, retval);
 	return (retval == PAM_SUCCESS);
 }

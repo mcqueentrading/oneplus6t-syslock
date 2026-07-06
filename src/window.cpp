@@ -2,7 +2,21 @@
 #include "auth.hpp"
 #include <filesystem>
 #include <pwd.h>
+#include <unistd.h>
 #include <ctime>
+
+namespace {
+bool phone_pin_matches(const std::string &expected, const std::string &provided) {
+	if (expected.empty() || expected.size() != provided.size())
+		return false;
+
+	unsigned char difference = 0;
+	for (std::size_t i = 0; i < expected.size(); ++i)
+		difference |= static_cast<unsigned char>(expected[i] ^ provided[i]);
+
+	return difference == 0;
+}
+}
 
 Glib::RefPtr<Gdk::Pixbuf> create_rounded_pixbuf(const Glib::RefPtr<Gdk::Pixbuf> &src_pixbuf, const int &size, const int &rounding_radius) {
 	// Limit to 50% rounding otherwise funky stuff happens
@@ -245,6 +259,15 @@ bool syslock_window::update_time_date() {
 void syslock_window::auth_start() {
 	label_error.hide();
 	std::string password = entry_password.get_buffer()->get_text().raw();
+	const std::string phone_pin = (*config)["main"]["phone-pin"];
+	const bool pam_fallback = (*config)["main"]["pam-fallback"] == "true";
+
+	// The phone PIN is local configuration, so it can be checked immediately on
+	// the GTK thread. This also avoids an unlock/destroy race from the old worker.
+	if (phone_pin_matches(phone_pin, password)) {
+		dispatcher_auth.emit();
+		return;
+	}
 
 	// Remove focus
 	Gtk::Button focus_dummy;
@@ -253,21 +276,24 @@ void syslock_window::auth_start() {
 	entry_password.set_sensitive(false);
 	box_layout.remove(focus_dummy);
 
-	std::thread thread_auth([&, password]() {
-		char *user = getenv("USER");
-		authenticated = authenticate(user, password.c_str());
-		if (authenticated) {
+	if (!pam_fallback) {
+		entry_password.set_text("");
+		label_error.show();
+		entry_password.set_sensitive(true);
+		return;
+	}
+
+	std::thread thread_auth([this, password]() {
+		const struct passwd *pw = getpwuid(geteuid());
+		const char *user = pw ? pw->pw_name : getenv("USER");
+		if (authenticate(user, password.c_str())) {
 			dispatcher_auth.emit();
-			label_error.hide();
+			return;
 		}
-		Glib::MainContext::get_default()->invoke([&]() {
-			// TODO: Display how many times the user can retry the password
+
+		Glib::MainContext::get_default()->invoke([this]() {
 			entry_password.set_text("");
-			if (!authenticated)
-				label_error.show();
-			else
-				reset();
-				
+			label_error.show();
 			entry_password.set_sensitive(true);
 			return false;
 		});

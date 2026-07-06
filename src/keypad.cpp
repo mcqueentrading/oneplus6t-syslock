@@ -3,6 +3,9 @@
 #include <gtkmm/button.h>
 
 keypad::keypad(Gtk::Entry &entry, const std::function<void()> &enter_func) : Gtk::FlowBox() {
+	constexpr int key_width = 152;
+	constexpr int key_height = 132;
+
 	set_min_children_per_line(3);
 	set_max_children_per_line(3);
 	set_halign(Gtk::Align::CENTER);
@@ -12,7 +15,7 @@ keypad::keypad(Gtk::Entry &entry, const std::function<void()> &enter_func) : Gtk
 		Gtk::FlowBoxChild child;
 		Gtk::Button *button = Gtk::manage(new Gtk::Button(std::to_string(i)));
 		append(child);
-		child.set_size_request(100, 100);
+		child.set_size_request(key_width, key_height);
 		child.set_child(*button);
 
 		button->set_can_focus(false);
@@ -26,7 +29,7 @@ keypad::keypad(Gtk::Entry &entry, const std::function<void()> &enter_func) : Gtk
 	Gtk::Button *button_enter = Gtk::manage(new Gtk::Button());
 	button_enter->set_image_from_icon_name("am-dialog-ok-symbolic");
 	append(child_enter);
-	child_enter.set_size_request(100, 100);
+	child_enter.set_size_request(key_width, key_height);
 	child_enter.set_child(*button_enter);
 
 	button_enter->set_can_focus(false);
@@ -37,7 +40,7 @@ keypad::keypad(Gtk::Entry &entry, const std::function<void()> &enter_func) : Gtk
 	Gtk::FlowBoxChild child_zero;
 	Gtk::Button *button_zero = Gtk::manage(new Gtk::Button("0"));
 	append(child_zero);
-	child_zero.set_size_request(100, 100);
+	child_zero.set_size_request(key_width, key_height);
 	child_zero.set_child(*button_zero);
 
 	button_zero->set_can_focus(false);
@@ -50,7 +53,7 @@ keypad::keypad(Gtk::Entry &entry, const std::function<void()> &enter_func) : Gtk
 	Gtk::Button *button_delete = Gtk::manage(new Gtk::Button());
 	button_delete->set_image_from_icon_name("edit-clear-symbolic");
 	append(child_delete);
-	child_delete.set_size_request(100, 100);
+	child_delete.set_size_request(key_width, key_height);
 	child_delete.set_child(*button_delete);
 
 	button_delete->set_can_focus(false);

@@ -27,6 +27,8 @@ The current fork defaults are aimed at the OnePlus 6T display and phone usage:
 - primary monitor set to `DSI-1`
 - keypad enabled for touch unlock
 - password length set to `6`
+- configured development phone PIN set to `147147`
+- PAM fallback disabled by default on the phone image
 - runtime config enabled
 - tap-to-wake feature compiled in
 - event hooks available for lock, unlock, and tap handling
@@ -45,6 +47,8 @@ start-unlocked=false
 keypad=true
 password-length=6
 main-monitor=DSI-1
+phone-pin=147147
+pam-fallback=false
 
 [tap-to-wake]
 device-path=/dev/input/by-path/SET-ME-UP
@@ -103,7 +107,14 @@ The Makefile installs:
 /usr/local/lib/libsyslock.so
 /usr/local/share/sys64/lock/config.conf
 /usr/local/share/sys64/lock/style.css
+/etc/pam.d/syslock
 ```
+
+The OnePlus 6T development image checks `main.phone-pin` directly. PAM remains
+available as an optional fallback through `pam-fallback=true`, using the
+dedicated `syslock` PAM service instead of the generic `login` stack. PAM is
+disabled by default because an unprivileged lock process cannot use
+`pam_unix.so` on systems whose `unix_chkpwd` helper is not setuid.
 
 ## Runtime Usage
 
@@ -152,10 +163,12 @@ straightforward.
 
 ## Security Notes
 
-This fork is part of an experimental Linux phone image. Treat it as phone-image
-infrastructure, not as a security audit claim. Test PAM behavior, keypad
-unlocking, power-key handling, and suspend/wake behavior on the target device
-before shipping a release image.
+This fork is part of an experimental Linux phone image. The default `147147`
+PIN and its plain-text config entry are development conveniences, not secure
+device authentication and not a replacement for full-disk encryption. Change
+or remove the default before a production release. Test keypad unlocking,
+power-key handling, and suspend/wake behavior on the target device before
+shipping a release image.
 
 ## Relationship To Upstream
 

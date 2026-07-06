@@ -37,6 +37,24 @@
   min-height: 44px;
 }
 
+#syslock flowbox {
+  margin-top: 22px;
+  min-width: 760px;
+}
+
+#syslock flowboxchild {
+  min-width: 222px;
+  min-height: 136px;
+  margin: 8px;
+}
+
+#syslock flowbox button {
+  min-width: 208px;
+  min-height: 124px;
+  border-radius: 10px;
+  font-size: 38px;
+}
+
 #syslock .label_error {
   color: rgb(255, 150, 125);
 }
